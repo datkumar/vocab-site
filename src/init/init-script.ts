@@ -1,7 +1,6 @@
 import path from "node:path";
 import axios from "axios";
 import { readFile, writeFile } from "node:fs/promises";
-import { db, mongo } from "../lib/db";
 import {
   clusterByPartOfSpeech,
   delay,
@@ -9,14 +8,17 @@ import {
   getUniqueStrings,
   shuffleArrayElements,
 } from "../lib/utils";
-import type {
-  EnglishWord,
-  EnglishWordWithTimestamps,
+import {
+  type EnglishWordEntry,
+  type EnglishWord,
+  type EnglishWordWithTimestamps,
+  getEnglishWordsCollection,
 } from "../models/EnglishWord";
 import {
   mapApiResponseFields,
   type DictionaryApiResponse,
 } from "../models/DictionaryApiResponse";
+import { ObjectId } from "mongodb";
 
 // This script is called from project root via 'pnpm init-words'
 const inputFilePath = path.resolve("./src/init/words.txt");
@@ -55,7 +57,7 @@ try {
   const oneYearBefore = new Date(present);
   oneYearBefore.setFullYear(present.getFullYear() - 1);
 
-  const dbEntriesToInsert: EnglishWordWithTimestamps[] = [];
+  const dbEntriesToInsert: EnglishWordEntry[] = [];
   const failedWords: string[] = [];
   console.log("STEP 2: Fetching & Processing meaning of each word");
   for (const word of finalQueryWords) {
@@ -81,31 +83,36 @@ try {
       updatedAt: randomTimeStamp.toISOString(),
     };
 
-    dbEntriesToInsert.push(wordEntry);
+    // Generate id and push current word entry to all entries to be inserted
+    dbEntriesToInsert.push({
+      ...wordEntry,
+      _id: new ObjectId(),
+    });
 
     // The API is rate-limited as upto 450 requests per 5 mins
     await delay(667); // Wait 667ms before making next API call
   }
   console.log("STEP 3: Inserting entries into DB");
 
-  const isInserted = await db
-    .collection("english_words")
-    .insertMany(dbEntriesToInsert);
+  // Fetch the "english_words" collection
+  const englishWordsCollection = await getEnglishWordsCollection();
+
+  // Insert all the prepared entries into DB
+  const isInserted = await englishWordsCollection.insertMany(dbEntriesToInsert);
+  // Verify that entries were inserted
   isInserted.acknowledged
     ? console.log("===== Your words were successfully inserted into DB =====")
     : console.log("===== Could not your insert words into DB =====");
 
+  // Create index over "word" and "variant" for faster search querying later
   console.log("STEP 4: Creating Index for faster queries");
-  await db.collection("english_words").createIndex(["word", "variants"]);
+  await englishWordsCollection.createIndex(["word", "variants"]);
 
   console.log(
     "STEP 5: Writing failed word searches into output file: words-failed.txt"
   );
-  const outputFileConent = failedWords.join("\n");
-  await writeFile(outputFilePath, outputFileConent, { encoding: "utf8" });
+  const outputFileContent = failedWords.join("\n");
+  await writeFile(outputFilePath, outputFileContent, { encoding: "utf8" });
 } catch (err) {
   console.error(err);
-} finally {
-  // Close the DB connection
-  await mongo.close();
 }

@@ -1,5 +1,3 @@
-"use client";
-
 import clsx from "clsx";
 import Link from "next/link";
 
@@ -37,19 +35,22 @@ const getRandomBgColor = (): string => {
 };
 
 export const WordCloud = ({ words }: { words: string[] }) => {
-  const workingWords = words.slice(0, 200);
+  const workingWords = words.slice(0, 40);
 
   return (
-    <div className="max-w-6xl flex flex-wrap gap-2 mx-auto py-10 px-5 content-evenly">
+    <div className="max-w-6xl flex flex-wrap gap-x-3 gap-y-4 mx-auto py-10 px-5 content-evenly">
       {workingWords.map((word) => (
-        <button
-          key={word}
-          className={clsx(getRandomBgColor(), "p-2 mx-auto rounded")}
-        >
-          <Link key={word} href={`/words/${word}`} prefetch={false}>
-            {word}
-          </Link>
-        </button>
+        <Link key={word} href={`/words/${word}`} prefetch={false}>
+          <button
+            key={word}
+            className={clsx(
+              getRandomBgColor(),
+              "px-3 py-2 mx-auto rounded-md shadow-md"
+            )}
+          >
+            <div className="font-medium ">{word}</div>
+          </button>
+        </Link>
       ))}
     </div>
   );

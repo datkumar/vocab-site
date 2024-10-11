@@ -1,11 +1,9 @@
 import { WordCloud } from "@/components/WordCloud";
-import { getWordList } from "@/lib/actions-server-only";
-import { shuffleArrayElements } from "@/lib/utils";
+import { getFewRandomWords } from "@/models/EnglishWord";
 import { notFound } from "next/navigation";
 
 export default async function Page() {
-  const result = await getWordList();
+  const wordList = await getFewRandomWords();
 
-  if (result) return <WordCloud words={shuffleArrayElements(result.words)} />;
-  else return notFound();
+  return wordList ? <WordCloud words={wordList.words} /> : notFound();
 }

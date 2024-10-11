@@ -1,9 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import {
-  type DefinitionEntry,
-  EnglishWordCollection,
-} from "../models/EnglishWord";
+import { type DefinitionEntry } from "../models/EnglishWord";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
