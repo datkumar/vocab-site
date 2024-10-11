@@ -1,8 +1,6 @@
 import MeaningCard from "@/components/MeaningCard";
-import {
-  EnglishWordCollection,
-  type EnglishWordEntry,
-} from "@/models/EnglishWord";
+import { getWordDetails } from "@/lib/actions-server-only";
+import { type EnglishWordEntry } from "@/models/EnglishWord";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -15,7 +13,7 @@ export const generateMetadata = ({ params }: Props): Metadata => {
 };
 
 export default async function Page({ params }: Props) {
-  const response = await EnglishWordCollection.findOne({ word: params.word });
+  const response = await getWordDetails(params.word);
 
   if (!response) {
     return notFound();

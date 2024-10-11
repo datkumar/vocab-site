@@ -1,92 +1,22 @@
-import { MongoClient, Db } from "mongodb";
+import { Db, MongoClient, ServerApiVersion } from "mongodb";
 
-// Singleton class to ensure there's only ONE instance of DB connection
-class DbConnection {
-  private static instance: DbConnection;
-  private client: MongoClient | null = null;
-  private db: Db | null = null;
-  private isConnecting = false;
+// Referred from NextAuth:
+// https://authjs.dev/getting-started/adapters/mongodb
 
-  private constructor() {}
-
-  public static getInstance(): DbConnection {
-    if (!DbConnection.instance) {
-      DbConnection.instance = new DbConnection();
-    }
-    return DbConnection.instance;
-  }
-
-  private async waitForConnection(): Promise<void> {
-    return new Promise((resolve) => {
-      const checkConnection = () => {
-        if (this.isConnecting) {
-          resolve();
-        } else {
-          setTimeout(checkConnection, 100);
-        }
-      };
-      checkConnection();
-    });
-  }
-
-  public async getDb(): Promise<Db> {
-    if (this.client && this.db) {
-      return this.db;
-    }
-    if (!process.env.MONGO_URL || !process.env.DB_NAME) {
-      throw new Error("MONGO_URL and DB_NAME must be specified in .env");
-    }
-    try {
-      if (this.isConnecting) {
-        await this.waitForConnection();
-      }
-      if (!this.client) {
-        this.isConnecting = true;
-        this.client = await MongoClient.connect(process.env.MONGO_URL);
-        this.isConnecting = false;
-      }
-      this.db = this.client.db(process.env.DB_NAME);
-      return this.db;
-    } catch (error) {
-      // Reset the members
-      this.isConnecting = false;
-      this.client = null;
-      this.db = null;
-      console.log("MongoDB connection error", error);
-      throw new Error("Could not connect to Database");
-    }
-  }
-
-  // This method is primarily for testing purposes
-  public async closeConnection(): Promise<void> {
-    if (this.client) {
-      await this.client.close();
-      this.client = null;
-      this.db = null;
-    }
-  }
+if (!process.env.DB_NAME || !process.env.MONGODB_URI) {
+  throw new Error("DB_NAME and MONGODB_URI must be specified in .env");
 }
-
-// For use in development environments to preserve connection across hot reloads
-// Add dbConnection to the global scope
-declare global {
-  var dbConnection: DbConnection | undefined;
-}
-
-// Checks if connection already exists, else creates one and assigns it to global scope
-const dbConnection =
-  global.dbConnection || (global.dbConnection = DbConnection.getInstance());
-
-export const getDb = () => dbConnection.getDb();
-
-// Old setup:
-/*
-
-if (!process.env.MONGO_URL || !process.env.DB_NAME) {
-  throw new Error("MONGO_URL and DB_NAME must be specified in .env");
-}
-const url = process.env.MONGO_URL;
+const url = process.env.MONGODB_URI;
 const dbName = process.env.DB_NAME;
+
+// const options = {
+//   serverApi: {
+//     version: ServerApiVersion.v1,
+//     strict: true,
+//     deprecationErrors: true,
+//   },
+// };
+const options = {};
 
 // The MongoDB driver handles connection pooling internally, so it
 // efficiently manages and reuses a pool of connections to the database server.
@@ -103,8 +33,7 @@ if (process.env.NODE_ENV === "development") {
     _db?: Db;
   };
   if (!globalWithMongo._db) {
-    // globalWithMongo._db = new MongoClient(url, {}).db(dbName);
-    globalWithMongo._mongo = new MongoClient(url, {});
+    globalWithMongo._mongo = new MongoClient(url, options);
     globalWithMongo._db = globalWithMongo._mongo.db(dbName);
   }
   mongo = globalWithMongo._mongo;
@@ -112,12 +41,8 @@ if (process.env.NODE_ENV === "development") {
 } else {
   // In production mode, it's best to not use a global variable
   // as the state isn't preserved across different API calls in serverless architecture
-  // db = new MongoClient(url).db(dbName);
-  mongo = new MongoClient(url);
+  mongo = new MongoClient(url, options);
   db = mongo.db(dbName);
 }
 
-export { db };
-export { mongo };
-
-*/
+export { db, mongo };

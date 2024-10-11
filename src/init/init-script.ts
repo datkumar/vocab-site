@@ -12,7 +12,7 @@ import {
   type EnglishWordEntry,
   type EnglishWord,
   type EnglishWordWithTimestamps,
-  getEnglishWordsCollection,
+  EnglishWordsCollection,
 } from "../models/EnglishWord";
 import {
   mapApiResponseFields,
@@ -59,6 +59,7 @@ try {
 
   const dbEntriesToInsert: EnglishWordEntry[] = [];
   const failedWords: string[] = [];
+
   console.log("STEP 2: Fetching & Processing meaning of each word");
   for (const word of finalQueryWords) {
     const dictionaryApiResponse = await getWordMeaning(word);
@@ -94,11 +95,8 @@ try {
   }
   console.log("STEP 3: Inserting entries into DB");
 
-  // Fetch the "english_words" collection
-  const englishWordsCollection = await getEnglishWordsCollection();
-
   // Insert all the prepared entries into DB
-  const isInserted = await englishWordsCollection.insertMany(dbEntriesToInsert);
+  const isInserted = await EnglishWordsCollection.insertMany(dbEntriesToInsert);
   // Verify that entries were inserted
   isInserted.acknowledged
     ? console.log("===== Your words were successfully inserted into DB =====")
@@ -106,7 +104,7 @@ try {
 
   // Create index over "word" and "variant" for faster search querying later
   console.log("STEP 4: Creating Index for faster queries");
-  await englishWordsCollection.createIndex(["word", "variants"]);
+  await EnglishWordsCollection.createIndex(["word", "variants"]);
 
   console.log(
     "STEP 5: Writing failed word searches into output file: words-failed.txt"

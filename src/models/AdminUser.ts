@@ -1,41 +1,15 @@
-import { getDb } from "@/lib/db";
-import { WithId, Collection } from "mongodb";
+import { db } from "@/lib/db";
+import { WithId } from "mongodb";
 import { z } from "zod";
 
 export const AdminUserSchema = z.object({
-  username: z.string(),
-  password: z.string(),
+  username: z.string().min(4),
+  password: z.string().min(10),
 });
 
 export type AdminUser = z.infer<typeof AdminUserSchema>;
 
 export type AdminUserEntry = WithId<AdminUser>;
 
-let collectionPromise: Promise<Collection<AdminUserEntry>>;
-
-export const getAdminUsersCollection = async (): Promise<
-  Collection<AdminUserEntry>
-> => {
-  try {
-    if (!collectionPromise) {
-      collectionPromise = getDb().then((db) =>
-        db.collection<AdminUserEntry>("admins")
-      );
-    }
-    return await collectionPromise;
-  } catch (error) {
-    console.error("Failed to get 'admins' collection:", error);
-    throw new Error("Failed to get 'admins' collection");
-  }
-};
-
-export const getAdminUser = async (username: string) => {
-  try {
-    const collection = await getAdminUsersCollection();
-    const adminUser = collection.findOne({ username });
-    return adminUser;
-  } catch (error) {
-    console.log("Failed to fetch user", error);
-    throw new Error("Failed to fetch user");
-  }
-};
+// MongoDB collection of english word entries
+export const AdminUsersCollection = db.collection<AdminUserEntry>("admins");

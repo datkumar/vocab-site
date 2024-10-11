@@ -1,36 +1,25 @@
-import { pbkdf2, randomBytes } from "crypto";
+import bcrypt from "bcrypt";
 
-const digest = process.env.DIGEST!;
-const iterations = parseInt(process.env.ITERATIONS!);
-const keyLength = parseInt(process.env.KEY_LENGTH!);
-const salt = process.env.SALT!;
-
-console.table({ digest, iterations, keyLength, salt });
-
-const getPasswordHash = (password: string): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    pbkdf2(password, salt, iterations, keyLength, digest, (err, derivedKey) => {
-      if (err) {
-        console.log("REJECTING");
-        reject(err);
-      } else {
-        console.log("RESOLVED:", derivedKey.toString("hex"));
-        resolve(derivedKey.toString("hex"));
-      }
-    });
-  });
+const getPasswordHash = async (password: string): Promise<string | null> => {
+  try {
+    const hashedPassword = await bcrypt.hash(password, 11);
+    return hashedPassword;
+  } catch (error) {
+    console.log("Error hashing password", error);
+    return null;
+  }
 };
 
 export const verifyPassword = async (
-  password: string,
+  userFilledPassword: string,
   passwordInDb: string
 ): Promise<boolean> => {
   try {
-    const passwordHash = await getPasswordHash(password);
-    return passwordHash === passwordInDb;
+    const isMatched = await bcrypt.compare(userFilledPassword, passwordInDb);
+    return isMatched;
   } catch (error) {
-    console.log(error);
-    return false;
+    console.log("Error while checking password", error);
+    throw new Error("Error while checking password");
   }
 };
 
@@ -40,5 +29,6 @@ export const verifyPassword = async (
 */
 // const salt = randomBytes(16).toString("hex");
 // console.log("salt:", salt);
-// const password = process.env.PASSWORD!;
-// console.log("Password hash:", passwordHash);
+const password = process.env.PASSWORD!;
+const passwordHash = await getPasswordHash(password);
+console.log("Password hash:", passwordHash);
