@@ -6,6 +6,7 @@ export const metadata: Metadata = {
 };
 
 export default function LoginPage() {
+  console.log("at LoginPage");
   return (
     <main>
       <LoginForm />

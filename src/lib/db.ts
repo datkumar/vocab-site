@@ -9,14 +9,14 @@ if (!process.env.DB_NAME || !process.env.MONGODB_URI) {
 const url = process.env.MONGODB_URI;
 const dbName = process.env.DB_NAME;
 
-// const options = {
-//   serverApi: {
-//     version: ServerApiVersion.v1,
-//     strict: true,
-//     deprecationErrors: true,
-//   },
-// };
-const options = {};
+const options = {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
+};
+// const options = {};
 
 // The MongoDB driver handles connection pooling internally, so it
 // efficiently manages and reuses a pool of connections to the database server.

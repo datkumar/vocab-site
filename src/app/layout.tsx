@@ -1,8 +1,8 @@
-import type { Metadata } from "next";
 import Image from "next/image";
 import { lora, geistMono, geistSans } from "@/lib/fonts";
+import type { Metadata } from "next";
 import "./globals.css";
-import bgtexture from "../../public/bgtexture.png";
+import Providers from "@/components/Providers";
 
 export const metadata: Metadata = {
   title: {
@@ -22,22 +22,28 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${lora.variable} font-sans antialiased`}
       >
-        <div className="relative bg-repeat min-h-dvh">
-          <Image
-            alt="page background image"
-            src={bgtexture}
-            priority={true}
-            quality={100}
-            placeholder="blur"
-            fill
-            sizes="100vw"
-            style={{
-              objectFit: "cover",
-            }}
-          />
+        <Providers>
+          <div className="relative bg-repeat min-h-dvh">
+            <Image
+              alt="Page Background Image"
+              src="/bg-texture.png"
+              fill={true}
+              // sizes="100vw"
+              placeholder="blur"
+              blurDataURL="/bg-blur.png"
+              // Generated from https://png-pixel.com/
+              // unoptimized={false}
+              // priority={true}
+              // quality={100}
+              // fetchPriority="high"
+              style={{
+                objectFit: "cover",
+              }}
+            />
 
-          <div className="relative">{children}</div>
-        </div>
+            <div className="relative">{children}</div>
+          </div>
+        </Providers>
       </body>
     </html>
   );

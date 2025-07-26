@@ -3,7 +3,6 @@ import Link from "next/link";
 
 // Have to specify safelist patterns for dynamic class names in Tailwind
 const colorPaletteNames = [
-  "gray",
   "red",
   "orange",
   "amber",
@@ -22,9 +21,9 @@ const colorPaletteNames = [
   "pink",
   "rose",
 ];
-const colorLevels = ["100", "200", "300", "400"];
+const colorLevels = ["100", "200", "300"];
 
-const getRandomBgColor = (): string => {
+const applyRandomBgColor = (): string => {
   const randomColorFamily =
     colorPaletteNames[Math.floor(Math.random() * colorPaletteNames.length)];
   const randomColorLevel =
@@ -34,18 +33,18 @@ const getRandomBgColor = (): string => {
   return result;
 };
 
-export const WordCloud = ({ words }: { words: string[] }) => {
+export const TiledWords = ({ words }: { words: string[] }) => {
   const workingWords = words.slice(0, 40);
 
   return (
-    <div className="max-w-6xl flex flex-wrap gap-x-3 gap-y-4 mx-auto py-10 px-5 content-evenly">
+    <div className="max-w-6xl flex flex-wrap gap-x-3 gap-y-4 mx-auto py-10 px-5 content-evenly bg-slate-50">
       {workingWords.map((word) => (
         <Link key={word} href={`/words/${word}`} prefetch={false}>
           <button
             key={word}
             className={clsx(
-              getRandomBgColor(),
-              "px-3 py-2 mx-auto rounded-md shadow-md"
+              applyRandomBgColor(),
+              "px-3 py-2 mx-auto rounded-md shadow-md text-green-950"
             )}
           >
             <div className="font-medium ">{word}</div>

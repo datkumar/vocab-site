@@ -29,6 +29,6 @@ export const verifyPassword = async (
 */
 // const salt = randomBytes(16).toString("hex");
 // console.log("salt:", salt);
-const password = process.env.PASSWORD!;
-const passwordHash = await getPasswordHash(password);
-console.log("Password hash:", passwordHash);
+// const password = process.env.PASSWORD!;
+// const passwordHash = await getPasswordHash(password);
+// console.log("Password hash:", passwordHash);

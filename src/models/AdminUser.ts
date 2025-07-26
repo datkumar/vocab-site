@@ -3,7 +3,8 @@ import { WithId } from "mongodb";
 import { z } from "zod";
 
 export const AdminUserSchema = z.object({
-  username: z.string().min(4),
+  // username: z.string().min(4),
+  email: z.string().email(),
   password: z.string().min(10),
 });
 

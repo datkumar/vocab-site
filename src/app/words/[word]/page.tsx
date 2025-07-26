@@ -1,18 +1,20 @@
 import MeaningCard from "@/components/MeaningCard";
-import { getWordDetails } from "@/lib/actions-server-only";
+import { getWordDetails } from "@/lib/actions";
 import { type EnglishWordEntry } from "@/models/EnglishWord";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-type Props = { params: { word: string } };
+type Props = { params: Promise<{ word: string }> };
 
-export const generateMetadata = ({ params }: Props): Metadata => {
+export const generateMetadata = async (props: Props): Promise<Metadata> => {
+  const params = await props.params;
   return {
     title: params.word,
   };
 };
 
-export default async function Page({ params }: Props) {
+export default async function Page(props: Props) {
+  const params = await props.params;
   const response = await getWordDetails(params.word);
 
   if (!response) {
