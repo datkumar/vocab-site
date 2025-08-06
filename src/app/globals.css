@@ -93,15 +93,13 @@
    Use the @source inline() directive with brace expansion
    to generate all your desired dynamic background color classes.
 */
-@source inline("bg-{red,orange,amber,yellow,lime,green,emerald,teal,cyan,sky,blue,indigo,violet,purple,fuchsia,pink,rose}-{100,200,300} text-slate-900");
-@source inline("bg-{red,orange,amber,yellow,lime,green,emerald,teal,cyan,sky,blue,indigo,violet,purple,fuchsia,pink,rose}-{500,600,700} text-white");
+@source inline("bg-{red,orange,amber,yellow,lime,green,emerald,teal,cyan,sky,blue,indigo,violet,purple,fuchsia,pink,rose}-{200,300,400} text-slate-900");
+@source inline("bg-{red,orange,amber,yellow,lime,green,emerald,teal,cyan,sky,blue,indigo,violet,purple,fuchsia,pink,rose}-{600,700,800} text-white");
 
 
-/*
-  Noisy texture image (1920x1080 + repeating) made to look like old paper. Created via:
-  https://www.cssmatic.com/noise-texture
 
-body {
-  @apply bg-[url("../../public/texture-bg.png")] bg-fixed bg-repeat;
-}
-*/
+/* Noisy texture image (1920x1080 + repeating) made to look like old paper. Created via:
+  https://www.cssmatic.com/noise-texture */
+/* body {
+  @apply bg-[url("../../public/bg-texture.png")] bg-fixed bg-repeat;
+} */

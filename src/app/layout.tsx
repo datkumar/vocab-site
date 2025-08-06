@@ -2,7 +2,7 @@ import Image from "next/image";
 import { lora, geistMono, geistSans } from "@/lib/fonts";
 import type { Metadata } from "next";
 import "./globals.css";
-import Providers from "@/components/Providers";
+import Providers from "@/components/providers";
 
 export const metadata: Metadata = {
   title: {
@@ -23,7 +23,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${lora.variable} font-sans antialiased`}
       >
         <Providers>
-          <div className="relative bg-repeat min-h-dvh">
+          <div className="relative bg-repeat min-h-dvh ">
             <Image
               alt="Page Background Image"
               src="/bg-texture.png"

@@ -4,8 +4,8 @@ import { z } from "zod";
 
 export const AdminUserSchema = z.object({
   // username: z.string().min(4),
-  email: z.string().email(),
-  password: z.string().min(10),
+  email: z.email(),
+  password: z.string().min(8),
 });
 
 export type AdminUser = z.infer<typeof AdminUserSchema>;

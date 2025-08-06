@@ -15,23 +15,34 @@ export const authConfig = {
     // Checks that request is authorized to access a page
     authorized: ({ request: { nextUrl }, auth }) => {
       console.log("at authorized()");
-      const isLoggedIn = !!auth?.user; // Convert to truthy/falsy value
       const isOnAdminPanel = nextUrl.pathname.startsWith("/admin");
+      const isOnLoginPage = nextUrl.pathname.startsWith("/login");
+      // Convert to truthy/falsy value
+      const isLoggedIn = !!auth?.user;
+
       if (isOnAdminPanel) {
         if (isLoggedIn) return true;
-        return false; // Redirect unauthenticated users to login page
-      } else if (isLoggedIn) {
+        // Redirect unauthenticated users to login page
+        return false;
+      }
+
+      // User is logged-in and tries to access login page, redirect to admin
+      if (isOnLoginPage && isLoggedIn) {
         return Response.redirect(new URL("/admin", nextUrl));
       }
-      return true;
 
-      // const isOnAdminPanel = nextUrl.pathname.startsWith("/admin");
-      // If trying to access admin without auth, redirect to login
-      // if (!isLoggedIn && isOnAdminPanel) {
-      //   return Response.redirect(new URL("/login", nextUrl));
-      // }
-      // // Allow access if authenticated or not trying to access protected routes
-      // return true;
+      return true;
+    },
+    redirect: async ({ url, baseUrl }) => {
+      if (url.startsWith("/")) {
+        // Allows relative callback URLs
+        return `${baseUrl}${url}`;
+      }
+      if (new URL(url).origin === baseUrl) {
+        // Allows callback URLs on the same origin
+        return url;
+      }
+      return baseUrl;
     },
   },
 } satisfies NextAuthConfig;

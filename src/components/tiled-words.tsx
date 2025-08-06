@@ -21,7 +21,7 @@ const colorFamilies = [
   "pink",
   "rose",
 ];
-const colorLevels = [100, 200, 300, 500, 600, 700];
+const colorLevels = [200, 300, 400, 600, 700, 800];
 
 const applyRandomBgAndTextColor = (): string => {
   const bgColorFamily =
@@ -40,18 +40,17 @@ export const TiledWords = ({ words }: { words: string[] }) => {
   const workingWords = words.slice(0, 40);
 
   return (
-    <div className="max-w-6xl flex flex-wrap gap-x-4 gap-y-5 mx-auto py-12 px-6 content-evenly bg-slate-50">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-4">
       {workingWords.map((word) => (
         <Link key={word} href={`/words/${word}`} prefetch={false}>
-          <button
-            key={word}
+          <div
             className={clsx(
               applyRandomBgAndTextColor(),
-              "px-3 py-2 mx-auto rounded-md shadow-md"
+              "rounded-md shadow-md flex items-center justify-center h-16 text-center text-xl font-serif transition hover:scale-105"
             )}
           >
-            <div className="font-medium ">{word}</div>
-          </button>
+            {word}
+          </div>
         </Link>
       ))}
     </div>

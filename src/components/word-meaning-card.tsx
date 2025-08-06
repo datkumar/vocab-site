@@ -1,9 +1,13 @@
 import type { EnglishWordEntry } from "@/models/EnglishWord";
-import { HighlightedExamples } from "./HighlightedExamples";
+import { HighlightedExamples } from "@/components/highlighted-egs";
 
-const MeaningCard = ({ wordData }: { wordData: EnglishWordEntry }) => {
+export const WordMeaningCard = ({
+  wordData,
+}: {
+  wordData: EnglishWordEntry;
+}) => {
   return (
-    <div className="container pt-10 pb-20">
+    <div>
       {/* WORD */}
       <h2 className="font-serif text-5xl pb-5">{wordData.word}</h2>
 
@@ -58,5 +62,3 @@ const MeaningCard = ({ wordData }: { wordData: EnglishWordEntry }) => {
     </div>
   );
 };
-
-export default MeaningCard;

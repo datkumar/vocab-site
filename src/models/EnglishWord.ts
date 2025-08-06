@@ -36,3 +36,9 @@ export type EnglishWordEntry = WithId<EnglishWordWithTimestamps>;
 // MongoDB collection of english word entries
 export const EnglishWordsCollection =
   db.collection<EnglishWordEntry>("english_words");
+
+// Type for the aggregated result
+export interface GroupedWords {
+  // Key will be the starting letter (A-Z), value will be an array of words
+  [key: string]: string[];
+}

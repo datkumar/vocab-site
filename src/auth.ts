@@ -1,15 +1,14 @@
-import NextAuth, { type DefaultSession } from "next-auth";
+import NextAuth, { CredentialsSignin, type User } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import { authConfig } from "./auth-config";
+import { mongo } from "@/lib/db";
+import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import { AdminUserSchema } from "@/models/AdminUser";
 import { getAdminUser } from "@/lib/actions";
 import { verifyPassword } from "@/lib/password-hasher";
-import { authConfig } from "./auth-config";
-import { CredentialsSignin, User } from "next-auth";
-import { mongo } from "@/lib/db";
-import { MongoDBAdapter } from "@auth/mongodb-adapter";
 
 class InvalidLoginError extends CredentialsSignin {
-  code = "Invalid identifier or password";
+  code = "Invalid email or password";
 }
 
 export const { auth, signIn, signOut, handlers } = NextAuth({
@@ -27,22 +26,20 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
       authorize: async (credentials) => {
         try {
           console.log("at authorize()");
-          const parsedCredentials = await AdminUserSchema.safeParse(
-            credentials
-          );
-          if (!parsedCredentials.success) return null;
-          // if (!parsedCredentials.success) {
-          //   throw new Error("Invalid credentials format");
-          // }
 
+          const parsedCredentials = AdminUserSchema.safeParse(credentials);
+          if (!parsedCredentials.success) {
+            console.log("Validation failed:", parsedCredentials.error);
+            return null;
+          }
           const { email, password } = parsedCredentials.data;
-          console.log("Parsed Credentials:", { email, password });
+          console.log("Parsed Email:", email);
 
           const fetchedUser = await getAdminUser(email);
-          if (!fetchedUser) return null;
-          // if (!fetchedUser) {
-          //   throw new Error("User not found");
-          // }
+          if (!fetchedUser) {
+            console.log("User not found");
+            return null;
+          }
 
           const passwordMatched = await verifyPassword(
             password,
@@ -50,16 +47,15 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
           );
           if (!passwordMatched) {
             console.log("Invalid Credentials");
-            // return null;
-            // throw new Error("Invalid Credentials");
-            throw new InvalidLoginError();
+            return null;
           }
 
           const user: User = {
             id: fetchedUser._id.toString(),
             email: fetchedUser.email,
           };
-          console.log("user:", user);
+
+          console.log("Authentication successful for user:", user.email);
           return user;
         } catch (error) {
           console.error("AUTH ERROR", error);

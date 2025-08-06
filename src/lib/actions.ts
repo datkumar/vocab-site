@@ -2,9 +2,10 @@
 
 import { EnglishWordEntry, EnglishWordsCollection } from "@/models/EnglishWord";
 import { AdminUserEntry, AdminUsersCollection } from "@/models/AdminUser";
-import { AuthError } from "next-auth";
-import { signIn, signOut } from "../auth";
 import { WithId } from "mongodb";
+import { signIn, signOut } from "../auth";
+import { AuthError } from "next-auth";
+import { redirect } from "next/navigation";
 
 /**
  * Fetches a small random sample of words from the `EnglishWordsCollection`
@@ -84,25 +85,40 @@ export const authenticate = async (
     // Refer https://authjs.dev/reference/core/errors#credentialssignin
     console.log("at authenticate()");
     console.log("formData:", formData);
+
     // await signIn("credentials", formData); // old one
+
     // Convert FormData to a regular JS object if needed
-    const formDataEntries = Object.fromEntries(formData);
+    // const formDataEntries = Object.fromEntries(formData);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
     // Ensure we await the cookies/headers (Next15 breaking change)
+    console.log("Attempting authentication for:", email);
     const result = await signIn("credentials", {
-      ...formDataEntries,
+      email,
+      password,
       redirect: false,
     });
-    if (result.error) return "Invalid Credentials";
-    // After successful login:
-    console.log(result);
-    // revalidatePath("/admin"); // revalidate the session
-    return undefined; // Clear any error message
+    console.log("SignIn result:", result);
+
+    // If we reach here, authentication was successful
+    // Redirect to admin panel
+    redirect("/admin");
+
+    // if (result.error) return "Invalid Credentials";
+    // // After successful login:
+    // console.log(result);
+    // // revalidatePath("/admin"); // revalidate the session
+    // return undefined; // Clear any error message
     // redirect("/admin");
     // permanentRedirect(result?.url || "/admin");
     // redirect("/admin");
     // Don't redirect here since we're handling it in the component
     // The useEffect will handle the redirect after session is updated
   } catch (error) {
+    console.error("Authentication error:", error);
+
     if (error instanceof AuthError) {
       switch (error.type) {
         case "CredentialsSignin":
@@ -111,7 +127,13 @@ export const authenticate = async (
           return "Something went wrong";
       }
     }
-    throw error;
+
+    // Handle redirect errors (which are expected after successful auth)
+    if (error && typeof error === "object" && "digest" in error) {
+      throw error; // Let Next.js handle the redirect
+    }
+
+    return "Authentication failed";
   }
 };
 
@@ -121,14 +143,13 @@ export const authenticate = async (
  * @returns Resolves when logout is complete.
  * @throws Will throw an error if the logout operation fails.
  */
-export const logout = async (formData: FormData): Promise<void> => {
+export const logout = async (): Promise<void> => {
   try {
-    await signOut({ redirectTo: "/login" });
+    await signOut({
+      redirectTo: "/login",
+    });
   } catch (error) {
-    // log the error and/or throw it
-    if (error instanceof AuthError) {
-      console.log("Error signing out");
-    }
+    console.error("Error signing out:", error);
     throw error;
   }
 };
