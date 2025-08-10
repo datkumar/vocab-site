@@ -1,5 +1,5 @@
 import { WordMeaningCard } from "@/components/word-meaning-card";
-import { getWordDetails } from "@/lib/actions";
+import { fetchWordDetails } from "@/lib/actions";
 import { type EnglishWordEntry } from "@/models/EnglishWord";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -17,7 +17,7 @@ export const generateMetadata = async (props: PageProps): Promise<Metadata> => {
 
 export default async function Page(props: PageProps) {
   const params = await props.params;
-  const response = await getWordDetails(params.word);
+  const response = await fetchWordDetails(params.word);
 
   if (!response) {
     return notFound();

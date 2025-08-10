@@ -4,6 +4,17 @@ import { z } from "zod";
 
 // Parts of speech: noun, pronoun, verb, adverb, adjective
 // More: preposition, conjunction, interjection, determiners, article
+// [
+//   "adjective",
+//   "adverb",
+//   "conjunction",
+//   "interjection",
+//   "noun",
+//   "preposition",
+//   "proper noun",
+//   "verb",
+// ];
+
 const DefinitionSchema = z.object({
   partOfSpeech: z.string(), // Maybe convert to enum later
   definitions: z.array(z.string()),
@@ -12,19 +23,19 @@ const DefinitionSchema = z.object({
 export type DefinitionEntry = z.infer<typeof DefinitionSchema>;
 
 const EnglishWordSchema = z.object({
-  word: z.string(),
-  audio: z.string().url().optional(),
-  meanings: z.array(DefinitionSchema),
-  examples: z.array(z.string()),
+  word: z.string().min(3),
   variants: z.array(z.string()),
+  meanings: z.array(DefinitionSchema),
   synonyms: z.array(z.string()),
   antonyms: z.array(z.string()),
+  examples: z.array(z.string()),
+  audio: z.url().optional(),
 });
 export type EnglishWord = z.infer<typeof EnglishWordSchema>;
 
 const EnglishWordWithTimestampsSchema = EnglishWordSchema.extend({
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
 });
 export type EnglishWordWithTimestamps = z.infer<
   typeof EnglishWordWithTimestampsSchema

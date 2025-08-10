@@ -4,6 +4,7 @@
 .env
 temp/
 src/init/*.txt
+notes.md
 
 # local env files
 .env*.local

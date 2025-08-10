@@ -42,11 +42,11 @@ export const TiledWords = ({ words }: { words: string[] }) => {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-4">
       {workingWords.map((word) => (
-        <Link key={word} href={`/words/${word}`} prefetch={false}>
+        <Link key={word} href={`/words/${word}`}>
           <div
             className={clsx(
               applyRandomBgAndTextColor(),
-              "rounded-md shadow-md flex items-center justify-center h-16 text-center text-xl font-serif transition hover:scale-105"
+              "backdrop-blur-lg rounded-md shadow-md flex items-center justify-center h-16 text-center text-lg font-serif font-semibold transition hover:scale-105"
             )}
           >
             {word}

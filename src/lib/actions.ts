@@ -1,11 +1,16 @@
 "use server";
 
-import { EnglishWordEntry, EnglishWordsCollection } from "@/models/EnglishWord";
+import {
+  EnglishWordEntry,
+  EnglishWordsCollection,
+  GroupedWords,
+} from "@/models/EnglishWord";
 import { AdminUserEntry, AdminUsersCollection } from "@/models/AdminUser";
 import { WithId } from "mongodb";
 import { signIn, signOut } from "../auth";
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
+import { SearchResult } from "@/models/SearchResult";
 
 /**
  * Fetches a small random sample of words from the `EnglishWordsCollection`
@@ -34,22 +39,100 @@ export const getFewRandomWords = async (
 };
 
 /**
+ * Fetches a small random sample of words from the `EnglishWordsCollection`
+ *
+ * @returns An object containing letter-wise grouped list of words
+ * @throws Will throw an error if the database query fails
+ */
+export const fetchGroupedWordList = async (): Promise<GroupedWords> => {
+  try {
+    const wordEntries = await EnglishWordsCollection.find(
+      {},
+      { projection: { word: 1, _id: 0 } }
+    )
+      .sort({ word: 1 })
+      .toArray();
+
+    const groupedWords: GroupedWords = {};
+    // A = 65 to Z = 90 character codes
+    for (let i = 65; i <= 90; i++) {
+      groupedWords[String.fromCharCode(i)] = [];
+    }
+
+    for (const entry of wordEntries) {
+      const firstLetterCode = entry.word.toUpperCase().charCodeAt(0);
+      if (firstLetterCode >= 65 && firstLetterCode <= 90) {
+        groupedWords[String.fromCharCode(firstLetterCode)].push(entry.word);
+      }
+    }
+    return groupedWords;
+  } catch (error) {
+    console.error("Failed to get grouped word list from DB", error);
+    throw new Error("Failed to get grouped word list");
+  }
+};
+
+/**
  * Retrieves a single word document from the `EnglishWordsCollection` by `word` value
  * @param word The word to fetch details for
  * @returns The matching `EnglishWordEntry` document, or null if not found
  * @throws Will throw an error if the database query fails
  */
-export const getWordDetails = async (
+export const fetchWordDetails = async (
   word: string
 ): Promise<WithId<EnglishWordEntry> | null> => {
   try {
     const result = await EnglishWordsCollection.findOne({ word });
     return result;
   } catch (error) {
-    console.log("Failed to fetch details of that word", error);
-    throw new Error("Failed to fetch words");
+    console.log(`Failed to fetch details of word  ${word}`, error);
+    throw new Error("Failed to fetch word details");
   }
 };
+
+/**
+ * Retrieves a single word document from the `EnglishWordsCollection` by `word` value
+ * @param query The term to search matching words for
+ * @returns All array of all the matched {word, variants} values
+ * @throws Will throw an error if the database query fails
+ */
+export async function searchWords(query: string): Promise<SearchResult[]> {
+  // Minimum query length
+  if (!query || query.length < 3) return [];
+
+  const searchTerm = query.trim().toLowerCase();
+  try {
+    // NOTE: Have created Composite Index ["word", "variants"] for faster searches
+    const results = await EnglishWordsCollection.find(
+      {
+        // Match query to anywhere in "word" field OR "variants" field array
+        // The "i" is for case-insensitive
+        $or: [
+          { word: { $regex: new RegExp(searchTerm, "i") } },
+          { variants: { $regex: new RegExp(searchTerm, "i") } },
+        ],
+      },
+      {
+        // Pick only "word" and "variants" values
+        projection: { word: 1, variants: 1, _id: 0 },
+      }
+    )
+      .limit(20)
+      .toArray();
+
+    const searchResults = results.map((result) => {
+      const isWordMatch = result.word.toLowerCase().includes(searchTerm);
+      return {
+        word: result.word,
+        wordMatched: isWordMatch,
+      };
+    });
+    return searchResults;
+  } catch (error) {
+    console.error("Search error:", error);
+    return [];
+  }
+}
 
 /**
  * Retrieves an admin user document by email from the AdminUsersCollection.
@@ -105,20 +188,8 @@ export const authenticate = async (
     // If we reach here, authentication was successful
     // Redirect to admin panel
     redirect("/admin");
-
-    // if (result.error) return "Invalid Credentials";
-    // // After successful login:
-    // console.log(result);
-    // // revalidatePath("/admin"); // revalidate the session
-    // return undefined; // Clear any error message
-    // redirect("/admin");
-    // permanentRedirect(result?.url || "/admin");
-    // redirect("/admin");
-    // Don't redirect here since we're handling it in the component
-    // The useEffect will handle the redirect after session is updated
   } catch (error) {
     console.error("Authentication error:", error);
-
     if (error instanceof AuthError) {
       switch (error.type) {
         case "CredentialsSignin":
@@ -127,12 +198,10 @@ export const authenticate = async (
           return "Something went wrong";
       }
     }
-
     // Handle redirect errors (which are expected after successful auth)
     if (error && typeof error === "object" && "digest" in error) {
       throw error; // Let Next.js handle the redirect
     }
-
     return "Authentication failed";
   }
 };
