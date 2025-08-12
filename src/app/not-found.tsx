@@ -2,12 +2,16 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="container h-dvh content-center">
-      <h1 className="text-2xl py-3">
-        Sorry we could not find what you were looking for
+    // Replaced invalid class with correct flexbox utilities
+    <div className="container h-dvh mx-auto flex flex-col items-center justify-center">
+      <h1 className="text-3xl py-5 text-center font-serif">
+        Sorry, no such page exists {" ¯\\_(ツ)_/¯"}
       </h1>
-      <Link href="/" className="font-semibold text-lg text-blue-700">
-        Take me back to Homepage
+      <Link
+        href="/"
+        className="font-bold text-2xl text-blue-600 hover:underline hover:scale-105"
+      >
+        Back to Homepage
       </Link>
     </div>
   );

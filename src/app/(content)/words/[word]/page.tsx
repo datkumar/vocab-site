@@ -23,10 +23,16 @@ export default async function Page(props: PageProps) {
     return notFound();
   }
   return (
-    <div className="min-h-screen flex items-center justify-center py-8">
-      <div className="container w-full max-w-4xl bg-orange-100 rounded-xl px-10 py-8 shadow-lg border-2 border-amber-900">
+    <div className="container max-w-6xl w-full h-full mx-auto py-8">
+      <div className="bg-orange-50 rounded-xl px-12 py-8 shadow-lg border-2 border-amber-900 w-full">
         <WordMeaningCard wordData={response as EnglishWordEntry} />
       </div>
     </div>
+
+    // <div className="container max-w-6xl w-full h-full mx-auto flex items-center justify-center py-8">
+    //   <div className="bg-orange-50 rounded-xl px-12 py-8 shadow-lg border-2 border-amber-900">
+    //     <WordMeaningCard wordData={response as EnglishWordEntry} />
+    //   </div>
+    // </div>
   );
 }

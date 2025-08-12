@@ -8,8 +8,11 @@ export default async function Home() {
   if (!wordList || wordList.words.length < 1) return notFound();
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="container w-full max-w-4xl bg-orange-50 rounded-xl p-6 shadow-lg border-2 border-amber-900">
+    <div className="container h-full max-w-6xl">
+      <div className=" flex flex-col items-center justify-center py-8">
+        <h1 className="text-3xl md:text-4xl font-serif font-extrabold text-center text-rose-800 pb-8">
+          Fresh 40 Mix
+        </h1>
         <TiledWords words={wordList.words} />
       </div>
     </div>

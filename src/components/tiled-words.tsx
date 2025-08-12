@@ -40,13 +40,13 @@ export const TiledWords = ({ words }: { words: string[] }) => {
   const workingWords = words.slice(0, 40);
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-4">
+    <div className="w-full grid grid-cols-3 md:grid-cols-5 gap-5 bg-orange-50 p-6 rounded-xl shadow-lg border-2 border-amber-900">
       {workingWords.map((word) => (
         <Link key={word} href={`/words/${word}`}>
           <div
             className={clsx(
               applyRandomBgAndTextColor(),
-              "backdrop-blur-lg rounded-md shadow-md flex items-center justify-center h-16 text-center text-lg font-serif font-semibold transition hover:scale-105"
+              "flex items-center justify-center h-16 text-center text-xl font-serif backdrop-blur-lg rounded-2xl shadow-md hover:scale-105"
             )}
           >
             {word}

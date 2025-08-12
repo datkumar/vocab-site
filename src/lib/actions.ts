@@ -208,17 +208,13 @@ export const authenticate = async (
 
 /**
  * Logs the user out and redirects to the login page.
- * @param formData - The form data associated with the logout action (not used here).
- * @returns Resolves when logout is complete.
- * @throws Will throw an error if the logout operation fails.
+ * We let NextAuth handle the redirect
  */
 export const logout = async (): Promise<void> => {
-  try {
-    await signOut({
-      redirectTo: "/login",
-    });
-  } catch (error) {
-    console.error("Error signing out:", error);
-    throw error;
-  }
+  // Don't wrap signOut with redirectTo in try/catch
+  // The NEXT_REDIRECT error is expected and should bubble up
+  await signOut({
+    redirectTo: "/login",
+  });
+  // This line won't be reached due to the redirect
 };

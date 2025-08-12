@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useEffect, useRef, useTransition } from "react";
+import { useState, useEffect, useRef, useTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { searchWords } from "@/lib/actions";
 import { SearchResult } from "@/models/SearchResult";
+import clsx from "clsx";
 
-export default function SearchBar() {
+export const SearchBar = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const [isPending, startTransition] = useTransition();
   const searchRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -28,6 +30,7 @@ export default function SearchBar() {
   }, []);
 
   useEffect(() => {
+    // Hide dropdown if query is too short
     if (searchTerm.length < 3) {
       setResults([]);
       setShowDropdown(false);
@@ -39,7 +42,7 @@ export default function SearchBar() {
         try {
           const searchResults = await searchWords(searchTerm);
           setResults(searchResults);
-          setShowDropdown(searchResults.length > 0);
+          setShowDropdown(true); // Always show dropdown if search is > 3
         } catch (error) {
           console.error("Search failed:", error);
           setResults([]);
@@ -48,7 +51,10 @@ export default function SearchBar() {
       });
     }, 300);
 
-    return () => clearTimeout(timeoutId);
+    return () => {
+      clearTimeout(timeoutId);
+      setActiveIndex(-1); // Reset active index on new search
+    };
   }, [searchTerm]);
 
   const handleSelectWord = (word: string) => {
@@ -57,51 +63,82 @@ export default function SearchBar() {
     router.push(`/words/${word}`);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Prevent form submission on Enter key
+  const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchTerm.length >= 3) {
-      setShowDropdown(false);
-      router.push(`/search?q=${encodeURIComponent(searchTerm)}`);
-    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Escape") {
+    if (!showDropdown) return; // Only handle keys when dropdown is visible
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIndex((prevIndex) =>
+        prevIndex < results.length - 1 ? prevIndex + 1 : 0
+      );
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIndex((prevIndex) =>
+        prevIndex > 0 ? prevIndex - 1 : results.length - 1
+      );
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (activeIndex !== -1) {
+        handleSelectWord(results[activeIndex].word);
+      }
+    } else if (e.key === "Escape") {
       setShowDropdown(false);
+      setActiveIndex(-1);
     }
   };
 
+  const showMessage = useMemo(() => {
+    if (isPending) return "Searching...";
+    if (searchTerm.length < 3) return "Type at least 3 characters...";
+    if (results.length === 0) return "No matches found.";
+    return null;
+  }, [isPending, searchTerm, results.length]);
+
   return (
-    <div ref={searchRef} className="relative w-full max-w-md">
-      <form onSubmit={handleSubmit}>
+    <div ref={searchRef} className="relative w-full">
+      {/* Remove onSubmit from form to prevent redirect on Enter */}
+      <form onSubmit={handleFormSubmit}>
         <div className="relative">
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Search words..."
-            className="w-full px-4 py-2 pr-10 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            placeholder="Search for words ..."
+            className="w-full pl-4 pr-2 py-2 text-sm border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
           />
           <button
-            type="submit"
+            type="button" // Change to type="button" to prevent form submission
             disabled={searchTerm.length < 3}
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={clsx(
+              "absolute right-2 top-1/2 transform -translate-y-1/2 p-1.5 transition-colors",
+              searchTerm.length < 3
+                ? "text-gray-300 cursor-not-allowed"
+                : "text-gray-400 hover:text-gray-600"
+            )}
           >
             {isPending ? (
+              // Loading spinner
               <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
             ) : (
+              // Search icon (Magnifying glass)
               <svg
-                className="w-4 h-4"
+                xmlns="http://www.w3.org/2000/svg"
                 fill="none"
-                stroke="currentColor"
                 viewBox="0 0 24 24"
+                strokeWidth="2"
+                stroke="currentColor"
+                className="size-6 h-5 w-5 stroke-slate-400"
               >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
                 />
               </svg>
             )}
@@ -111,29 +148,31 @@ export default function SearchBar() {
 
       {showDropdown && (
         <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-y-auto">
-          {results.length === 0 ? (
-            <div className="px-4 py-3 text-sm text-gray-500">
-              {searchTerm.length < 3
-                ? "Type at least 3 characters"
-                : "No matches found"}
-            </div>
+          {showMessage ? (
+            <div className="px-4 py-3 text-sm text-gray-500">{showMessage}</div>
           ) : (
             results.map((result, index) => (
               <button
-                key={`${result.word}-${index}`}
+                key={result.word}
                 onClick={() => handleSelectWord(result.word)}
-                className="w-full px-4 py-3 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none border-b border-gray-100 last:border-b-0 transition-colors"
+                className={clsx(
+                  "w-full px-4 py-3 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none border-b border-gray-100 last:border-b-0 transition-colors",
+                  { "bg-gray-100": index === activeIndex }
+                )}
               >
                 <div className="flex justify-between items-center">
                   <span className="font-medium text-orange-900">
                     {result.word}
                   </span>
                   <span
-                    className={`text-xs ${
-                      result.wordMatched ? "text-green-500" : "text-gray-400"
-                    }`}
+                    className={clsx(
+                      "text-xs px-2 py-1 rounded-full",
+                      result.wordMatched
+                        ? "bg-blue-100 text-blue-800"
+                        : "bg-gray-100 text-gray-600"
+                    )}
                   >
-                    {result.wordMatched ? "Exact Match" : "Variant matched"}
+                    {result.wordMatched ? "Direct Match" : "Variant matched"}
                   </span>
                 </div>
               </button>
@@ -143,4 +182,4 @@ export default function SearchBar() {
       )}
     </div>
   );
-}
+};

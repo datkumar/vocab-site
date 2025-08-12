@@ -25,7 +25,7 @@ export const WordMeaningCard = ({
   });
 
   return (
-    <div>
+    <div className="">
       {/* WORD */}
       <h2 className="font-serif text-5xl pb-5">{wordData.word}</h2>
 
