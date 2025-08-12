@@ -3,8 +3,9 @@ import { WithId } from "mongodb";
 import { z } from "zod";
 
 export const AdminUserSchema = z.object({
-  username: z.string().min(4),
-  password: z.string().min(10),
+  // username: z.string().min(4),
+  email: z.email(),
+  password: z.string().min(8),
 });
 
 export type AdminUser = z.infer<typeof AdminUserSchema>;

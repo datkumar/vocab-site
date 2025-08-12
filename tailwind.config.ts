@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config = {
-  darkMode: ["class"],
+  darkMode: "class",
   content: [
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
@@ -9,13 +9,6 @@ const config = {
     "./src/**/*.{ts,tsx}",
   ],
   prefix: "",
-  // For dynamically created classnames
-  safelist: [
-    {
-      pattern:
-        /bg-(gray|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(100|200|300|400)/,
-    },
-  ],
   theme: {
     container: {
       center: true,

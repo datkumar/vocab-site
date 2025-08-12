@@ -69,7 +69,7 @@ export const mapApiResponseFields = (
     examples: allExamples,
     synonyms: allSynonyms,
     antonyms: allAntonyms,
-    variants: [], // Initially empty, have to manually insert later
+    variants: [], // Initially empty, have to manually add words later
   };
   if (audioUrl) {
     result.audio = audioUrl;

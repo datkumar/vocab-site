@@ -107,7 +107,7 @@ try {
   await EnglishWordsCollection.createIndex(["word", "variants"]);
 
   console.log(
-    "STEP 5: Writing failed word searches into output file: words-failed.txt"
+    "STEP 5: Writing the failed word searches into output file: words-failed.txt"
   );
   const outputFileContent = failedWords.join("\n");
   await writeFile(outputFilePath, outputFileContent, { encoding: "utf8" });
